@@ -2,7 +2,9 @@ package com.example.mycamera
 
 import android.Manifest.permission.*
 import android.app.ActivityManager
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -20,16 +22,30 @@ import com.example.mycamera.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
-    private val permission = arrayOf(WRITE_EXTERNAL_STORAGE, CAMERA, READ_EXTERNAL_STORAGE, ACCESS_FINE_LOCATION, RECORD_AUDIO)
+    private val MULTIPLE_PERMISSIONS = 10
+    private val permission = arrayOf(WRITE_EXTERNAL_STORAGE, CAMERA, ACCESS_FINE_LOCATION, RECORD_AUDIO)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        checkPermission(permission)
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if(checkPermission()){
+                if(ContextCompat.checkSelfPermission(this@MainActivity, ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED){
+                    turnOnGPS()
+                }
+            }
+        }else{
+            turnOnGPS()
+        }
     }
 
     override fun onResume() {
@@ -43,37 +59,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkPermission(permission: Array<String>) {
+    private fun checkPermission():Boolean {
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            if(ContextCompat.checkSelfPermission(this@MainActivity, WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this@MainActivity, permission, 100)
-            }
+        var result:Int
+        val listPermissionsNeeded = ArrayList<String>()
 
-            if(ContextCompat.checkSelfPermission(this@MainActivity, CAMERA)
-                != PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this@MainActivity, permission, 101)
-            }
-
-            if(ContextCompat.checkSelfPermission(this@MainActivity, READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this@MainActivity, permission, 102)
-            }
-
-            if(ContextCompat.checkSelfPermission(this@MainActivity, ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this@MainActivity,permission,103)
-                turnOnGPS()
-            }else{
-                turnOnGPS()
-            }
-
-            if(ContextCompat.checkSelfPermission(this@MainActivity, RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this@MainActivity,permission,104)
+        for (p in permission) {
+            result = ContextCompat.checkSelfPermission(this@MainActivity, p)
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(p)
             }
         }
+        if (listPermissionsNeeded.isNotEmpty()) {
+            ActivityCompat.requestPermissions(
+                this,
+                listPermissionsNeeded.toTypedArray(),
+                MULTIPLE_PERMISSIONS)
+            return false
+        }
+        return true
     }
 
     fun onClick(view: View) {
@@ -109,6 +113,34 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return false
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when(requestCode){
+            MULTIPLE_PERMISSIONS -> {
+                if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    Toast.makeText(this@MainActivity, "Permission Granted", Toast.LENGTH_SHORT).show()
+                }else{
+                    Toast.makeText(this@MainActivity, "No Permission Granted", Toast.LENGTH_SHORT).show()
+                    AlertDialog.Builder(this)
+                        .setTitle("Alert!!")
+                        .setMessage("Please Restart To App Allow All Permission")
+                        .setCancelable(false)
+                        .setPositiveButton("OK"
+                        ) { p0, p1 ->
+                            p0?.dismiss()
+                            finish()
+                        }.show()
+                }
+                return
+            }
+        }
     }
 
 }

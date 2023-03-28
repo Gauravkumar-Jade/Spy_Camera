@@ -70,7 +70,7 @@ class MyService : Service(), LocationListener {
 
         val dir = getExternalFilesDir("SpyAudio")
 
-        val file = File(dir, "${System.currentTimeMillis()}.3gp")
+        val file = File(dir, "${System.currentTimeMillis()}.3gp").absolutePath
         mRecorder?.setOutputFile(file)
         try {
             mRecorder?.prepare()
