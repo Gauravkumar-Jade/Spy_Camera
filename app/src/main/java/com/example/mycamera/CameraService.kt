@@ -74,7 +74,7 @@ class CameraService : Service() {
     private fun onSaveData(data: ByteArray?, camera: Camera?) {
 
         try {
-            val mediaStorageDir:File = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+           // val mediaStorageDir:File = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
 
             val dir = getExternalFilesDir("SpyCam")
 
@@ -102,7 +102,7 @@ class CameraService : Service() {
     override fun onDestroy() {
         super.onDestroy()
 
-        Toast.makeText(this, "Service Stopped", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Camera Service Stopped", Toast.LENGTH_SHORT).show()
     }
 
     private fun getAvailableFrontCamera(): Camera? {
@@ -122,6 +122,5 @@ class CameraService : Service() {
         }
         return cam
     }
-
 }
 

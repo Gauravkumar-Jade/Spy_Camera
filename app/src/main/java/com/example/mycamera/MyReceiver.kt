@@ -17,7 +17,15 @@ class MyReceiver : BroadcastReceiver() {
 
 
     override fun onReceive(context: Context, intent: Intent) {
-       context.startService(Intent(context, CameraService::class.java))
+
+        val message = intent.extras?.getInt("message")
+
+        if(message == 0){
+            context.stopService(Intent(context, MyService::class.java))
+        }
+        if(message == 1){
+            context.startService(Intent(context, CameraService::class.java))
+        }
     }
 
 }
